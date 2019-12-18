@@ -1,4 +1,4 @@
-tum_simulator on Indigo
+tum_simulator on Melodic
 =============
 
 These packages are used to simulate the flying robot Ardrone in ROS environment using gazebo simulator. Totally they are 4 packages. Their functions are descript as below:
