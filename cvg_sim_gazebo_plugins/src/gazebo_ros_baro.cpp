@@ -43,8 +43,8 @@ GazeboRosBaro::GazeboRosBaro()
 // Destructor
 GazeboRosBaro::~GazeboRosBaro()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
-
+  // event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  updateConnection.reset();
   node_handle_->shutdown();
   delete node_handle_;
 }
@@ -68,7 +68,7 @@ void GazeboRosBaro::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   }
   else {
     link_name_ = _sdf->GetElement("bodyName")->Get<std::string>();
-    link = boost::dynamic_pointer_cast<physics::Link>(world->GetEntity(link_name_));
+    link = boost::dynamic_pointer_cast<physics::Link>(world->EntityByName(link_name_));
   }
 
   if (!link)
@@ -148,12 +148,12 @@ void GazeboRosBaro::Reset()
 // Update the controller
 void GazeboRosBaro::Update()
 {
-  common::Time sim_time = world->GetSimTime();
+  common::Time sim_time = world->SimTime();
   double dt = (sim_time - last_time).Double();
   if (last_time + update_period > sim_time) return;
 
-  math::Pose pose = link->GetWorldPose();
-  double height = sensor_model_(pose.pos.z, dt);
+  ignition::math::Pose3d pose = link->WorldPose();
+  double height = sensor_model_(pose.Pos().Z(), dt);
 
   if (height_publisher_) {
 #ifdef USE_MAV_MSGS

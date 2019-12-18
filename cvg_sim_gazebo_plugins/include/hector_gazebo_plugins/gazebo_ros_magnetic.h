@@ -61,7 +61,7 @@ private:
   ros::Publisher publisher_;
 
   geometry_msgs::Vector3Stamped magnetic_field_;
-  gazebo::math::Vector3 magnetic_field_world_;
+  ignition::math::Vector3d magnetic_field_world_;
 
   std::string namespace_;
   std::string topic_;

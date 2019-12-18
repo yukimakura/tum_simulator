@@ -120,8 +120,8 @@ private:
   bool setLedAnimationCallback(ardrone_autonomy::LedAnim::Request& request, ardrone_autonomy::LedAnim::Response& response);
 
   ros::Time state_stamp;
-  math::Pose pose;
-  math::Vector3 euler, velocity, acceleration, angular_velocity;
+  ignition::math::Pose3d pose;
+  ignition::math::Vector3d euler, velocity, acceleration, angular_velocity;
   double robot_altitude;
   // 0: Unknown, 1: Init, 2: Landed, 3: Flying, 4: Hovering, 5: Test
   // 6: Taking off, 7: Goto Fix Point, 8: Landing, 9: Looping
