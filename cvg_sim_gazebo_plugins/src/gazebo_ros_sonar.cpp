@@ -44,7 +44,8 @@ GazeboRosSonar::GazeboRosSonar()
 GazeboRosSonar::~GazeboRosSonar()
 {
   sensor_->SetActive(false);
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  // event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  updateConnection.reset();
   node_handle_->shutdown();
   delete node_handle_;
 }
@@ -54,7 +55,7 @@ GazeboRosSonar::~GazeboRosSonar()
 void GazeboRosSonar::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf)
 {
   // Get then name of the parent sensor
-  sensor_ = boost::dynamic_pointer_cast<sensors::RaySensor>(_sensor);
+  sensor_ = std::dynamic_pointer_cast<sensors::RaySensor>(_sensor);
   if (!sensor_)
   {
     gzthrow("GazeboRosSonar requires a Ray Sensor as its parent");
@@ -62,7 +63,7 @@ void GazeboRosSonar::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf)
   }
 
   // Get the world name.
-  std::string worldName = sensor_->GetWorldName();
+  std::string worldName = sensor_->WorldName();
   world = physics::get_world(worldName);
 
   // load parameters
@@ -85,9 +86,9 @@ void GazeboRosSonar::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf)
 
   range_.header.frame_id = frame_id_;
   range_.radiation_type = sensor_msgs::Range::ULTRASOUND;
-  range_.field_of_view = std::min(fabs((sensor_->GetAngleMax() - sensor_->GetAngleMin()).Radian()), fabs((sensor_->GetVerticalAngleMax() - sensor_->GetVerticalAngleMin()).Radian()));
-  range_.max_range = sensor_->GetRangeMax();
-  range_.min_range = sensor_->GetRangeMin();
+  range_.field_of_view = std::min(fabs((sensor_->AngleMax() - sensor_->AngleMin()).Radian()), fabs((sensor_->VerticalAngleMax() - sensor_->VerticalAngleMin()).Radian()));
+  range_.max_range = sensor_->RangeMax();
+  range_.min_range = sensor_->RangeMin();
 
   // start ros node
   if (!ros::isInitialized())
@@ -101,7 +102,7 @@ void GazeboRosSonar::Load(sensors::SensorPtr _sensor, sdf::ElementPtr _sdf)
   publisher_ = node_handle_->advertise<sensor_msgs::Range>(topic_, 1);
 
   Reset();
-  updateConnection = sensor_->GetLaserShape()->ConnectNewLaserScans(
+  updateConnection = sensor_->LaserShape()->ConnectNewLaserScans(
         boost::bind(&GazeboRosSonar::Update, this));
 
   // activate RaySensor
@@ -117,21 +118,21 @@ void GazeboRosSonar::Reset()
 // Update the controller
 void GazeboRosSonar::Update()
 {
-  common::Time sim_time = world->GetSimTime();
+  common::Time sim_time = world->SimTime();
   double dt = (sim_time - last_time).Double();
 //  if (last_time + updatePeriod > sim_time) return;
 
   // activate RaySensor if it is not yet active
   if (!sensor_->IsActive()) sensor_->SetActive(true);
 
-  range_.header.stamp.sec  = (world->GetSimTime()).sec;
-  range_.header.stamp.nsec = (world->GetSimTime()).nsec;
+  range_.header.stamp.sec  = (world->SimTime()).sec;
+  range_.header.stamp.nsec = (world->SimTime()).nsec;
 
   // find ray with minimal range
   range_.range = std::numeric_limits<sensor_msgs::Range::_range_type>::max();
-  int num_ranges = sensor_->GetLaserShape()->GetSampleCount() * sensor_->GetLaserShape()->GetVerticalSampleCount();
+  int num_ranges = sensor_->LaserShape()->GetSampleCount() * sensor_->LaserShape()->GetVerticalSampleCount();
   for(int i = 0; i < num_ranges; ++i) {
-    double ray = sensor_->GetLaserShape()->GetRange(i);
+    double ray = sensor_->LaserShape()->GetRange(i);
     if (ray < range_.range) range_.range = ray;
   }
 

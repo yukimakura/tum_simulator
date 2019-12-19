@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <package>
   <name>tum_simulator</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The tum_simulator</description>
   <maintainer email="e.salisbury@ecs.soton.ac.uk">Elliot</maintainer>
+  <maintainer email="yukimakura86@gmail.com">yukimakura</maintainer>
   <license>BSD</license>
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>cvg_sim_msgs</run_depend>

@@ -45,8 +45,8 @@ GazeboRosMagnetic::GazeboRosMagnetic()
 // Destructor
 GazeboRosMagnetic::~GazeboRosMagnetic()
 {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection);
-
+  // event::Events::DisconnectWorldUpdateBegin(updateConnection);
+  updateConnection.reset();
   node_handle_->shutdown();
   delete node_handle_;
 }
@@ -75,7 +75,7 @@ void GazeboRosMagnetic::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   }
   else {
     link_name_ = _sdf->GetElement("bodyName")->Get<std::string>();
-    link = boost::dynamic_pointer_cast<physics::Link>(world->GetEntity(link_name_));
+    link = boost::dynamic_pointer_cast<physics::Link>(world->EntityByName(link_name_));
   }
 
   if (!link)
@@ -115,9 +115,9 @@ void GazeboRosMagnetic::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 
   // Note: Gazebo uses NorthWestUp coordinate system, heading and declination are compass headings
   magnetic_field_.header.frame_id = frame_id_;
-  magnetic_field_world_.x = magnitude_ *  cos(inclination_) * cos(reference_heading_ - declination_);
-  magnetic_field_world_.y = magnitude_ *  sin(reference_heading_ - declination_);
-  magnetic_field_world_.z = magnitude_ * -sin(inclination_) * cos(reference_heading_ - declination_);
+  magnetic_field_world_.X(magnitude_ *  cos(inclination_) * cos(reference_heading_ - declination_) );
+  magnetic_field_world_.Y(magnitude_ *  sin(reference_heading_ - declination_) );
+  magnetic_field_world_.Z(magnitude_ * -sin(inclination_) * cos(reference_heading_ - declination_) );
 
   sensor_model_.Load(_sdf);
 
@@ -150,17 +150,17 @@ void GazeboRosMagnetic::Reset()
 // Update the controller
 void GazeboRosMagnetic::Update()
 {
-  common::Time sim_time = world->GetSimTime();
+  common::Time sim_time = world->SimTime();
   double dt = (sim_time - last_time).Double();
   if (last_time + update_period > sim_time) return;
 
-  math::Pose pose = link->GetWorldPose();
-  math::Vector3 field = sensor_model_(pose.rot.RotateVectorReverse(magnetic_field_world_), dt);
+  ignition::math::Pose3d pose = link->WorldPose();
+  ignition::math::Vector3d field = sensor_model_(pose.Rot().RotateVectorReverse(magnetic_field_world_), dt);
 
   magnetic_field_.header.stamp = ros::Time(sim_time.sec, sim_time.nsec);
-  magnetic_field_.vector.x = field.x;
-  magnetic_field_.vector.y = field.y;
-  magnetic_field_.vector.z = field.z;
+  magnetic_field_.vector.x = field.X();
+  magnetic_field_.vector.y = field.Y();
+  magnetic_field_.vector.z = field.Z();
 
   publisher_.publish(magnetic_field_);
 
