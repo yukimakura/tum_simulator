@@ -25,10 +25,10 @@ How to install the simulator:
 2. Download dependencies
 
     ```
-    git clone https://github.com/AutonomyLab/ardrone_autonomy.git	# The AR.Drone ROS driver
-    git clone https://github.com/occomco/tum_simulator.git
+    git clone https://github.com/yukimakura/ardrone_autonomy	# The AR.Drone ROS driver
+    git clone https://github.com/yukimakura/tum_simulator
     cd ..
-    rosdep install --from-paths src --ignore-src --rosdistro indigo -y
+    rosdep install --from-paths src --ignore-src -y
     ```
 3. Build the simulator
 
